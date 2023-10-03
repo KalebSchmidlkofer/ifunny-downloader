@@ -1,11 +1,11 @@
 from bs4 import BeautifulSoup
 import os
-import math
 import requests
+import typer
+from PIL import Image
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.keys import Keys
-from PIL import Image
 from cropper import crop
 
 def download(mediatype, elem):
@@ -19,10 +19,7 @@ def download(mediatype, elem):
   src = src.replace(r1, r2)
   src_no_extension = src.replace(r1, '')
   
-  if mediatype == 'picture':
-    src_no_extension = src_no_extension.replace(f'https://img.ifunny.co/{mediatype}s/', '')
-  else:
-    src_no_extension = src_no_extension.replace(f'https://img.ifunny.co/{mediatype}s/', '')
+  src_no_extension = src_no_extension.replace(f'https://img.ifunny.co/{mediatype}s/', '')
 
   response = requests.get(src)
   
@@ -39,12 +36,9 @@ def download(mediatype, elem):
   else:
     print(f'Failed to save image. Status code: {response.status_code}')
     
-
-def main():
+def main(url):
   try:
     browser = webdriver.Firefox()
-    # url = 'https://ifunny.co/video/JMlvnugrA'
-    url = 'https://ifunny.co/picture/cocaine-ma-beer-apple-fritters-vFIpBQgrA'
     browser.get(url)
     html = browser.page_source
     soup = BeautifulSoup(html, 'html.parser')
@@ -57,7 +51,6 @@ def main():
 
     if not url.find('https://ifunny.co/picture/'):
       elem = browser.find_element(By.XPATH, '//*[contains(@class, "f+2d")]')
-      # elem = soup.find(class_='f+2d')
       if elem:
         pass
       else:
@@ -81,6 +74,8 @@ def main():
   except Exception as e:
     print(e)
     browser.close()
+    
+    
 if __name__ == "__main__":
-  main()
+  typer.run(main)
   
