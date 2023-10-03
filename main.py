@@ -56,8 +56,8 @@ def main():
 
 
     if not url.find('https://ifunny.co/picture/'):
-      
-      elem = soup.find(class_='f+2d')
+      elem = browser.find_element(By.XPATH, '//*[contains(@class, "f+2d")]')
+      # elem = soup.find(class_='f+2d')
       if elem:
         pass
       else:
