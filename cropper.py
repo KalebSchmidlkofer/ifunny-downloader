@@ -30,8 +30,6 @@ def crop(image):
   cropped = img.crop((0, 0, width, length - watermark_size))
   if watermark_size > 21:
       print("[Skipped]:", image, watermark_size)
-      # img.show()
-      # cropped.show()
   else:  # Save image
       cropped_image_buffer = BytesIO()
       cropped.save(cropped_image_buffer, format='JPEG', subsampling=0, quality=100)
@@ -40,17 +38,40 @@ def crop(image):
       return cropped_image_bytes
 
 
+INPUT_DIRECTORY = "./input/"
+OUTPUT_DIRECTORY = "./output/"
 
-# Just check image for iFunny watermark
-def has_watermark():
-    pass
+
+# Assumes image has watermark and attempts to crop
+def cropdir():
+    for file in os.listdir(INPUT_DIRECTORY):  # For each file in directory
+        filename = os.fsdecode(file)  # Get filename
+        if filename.endswith(".jpg"):
+            img = Image.open(INPUT_DIRECTORY + "/" + filename)
+            pix = img.load()
+            width, length = img.size
+            curr_y = length - 1
+
+            # While color difference is less than threshold, move up and decrease Y height
+            while color_difference(pix[0, curr_y], pix[0, length - 1]) < THRESHOLD:
+                curr_y = curr_y - 1
+            watermark_size = length - curr_y
+
+            # For possible bad crops since the average watermark size is 21 pixels or less
+            cropped = img.crop((0, 0, width, length - watermark_size))
+            if watermark_size > 21:
+                print("[Skipped]:", filename, watermark_size)
+                # img.show()
+                # cropped.show()
+            else:  # Save image
+                cropped.save(OUTPUT_DIRECTORY + filename, format='JPEG', subsampling=0, quality=100)
 
 
 def menu():
     print("Cropping images...")
-    crop()
+    cropdir()
     print("Done")
 
 
-# if __name__ == "__main__":
-    # menu()
+if __name__ == "__main__":
+    menu()
