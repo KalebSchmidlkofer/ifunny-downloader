@@ -1,3 +1,4 @@
 .venv/
+.flaresolverr/
 __pycache__/
 output/*
