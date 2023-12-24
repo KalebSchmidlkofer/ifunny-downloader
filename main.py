@@ -1,81 +1,38 @@
-from bs4 import BeautifulSoup
 import os
+import typer, click
 import requests
-import typer
 from PIL import Image
-from selenium import webdriver
-from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from cropper import crop
+from fspy import FlareSolverr
+from typing import Optional
 
-def download(mediatype, elem):
-  if mediatype == 'image':
-    r1, r2 = '.webp', '.jpg'
-  elif mediatype == 'video':
-    r1, r2 = '.mp4', '.mp4'
-  
-  src = elem.get_attribute('src')
-  
-  src = src.replace(r1, r2)
-  src_no_extension = src.replace(r1, '')
-  
-  src_no_extension = src_no_extension.replace(f'https://img.ifunny.co/{mediatype}s/', '')
 
-  response = requests.get(src)
-  
-  if response.status_code == 200:
-    image_content = response.content
+class NaturalOrderGroup(click.Group):
+  def list_commands(self, ctx):
+    return self.commands.keys()
 
-    with open(os.path.join('output', f'{src_no_extension}{r2}'), 'wb') as f:
-      if r2 == '.mp4':
-        f.write(response.content)
-      else:
-        img = crop(image_content)
-        f.write(img)
-    print(f'Content saved')
-  else:
-    print(f'Failed to save image. Status code: {response.status_code}')
-    
+
+app = typer.Typer(cls=NaturalOrderGroup, add_completion=False)
+              
+@app.command()
 def main(url):
-  try:
-    browser = webdriver.Firefox()
-    browser.get(url)
-    html = browser.page_source
-    soup = BeautifulSoup(html, 'html.parser')
-    mediatype = None
-
-    if not url.find('https://ifunny.co/video/'):
-      elem = browser.find_element(By.TAG_NAME, 'video')
-      mediatype = 'video'
-
-
-    if not url.find('https://ifunny.co/picture/'):
-      elem = browser.find_element(By.XPATH, '//*[contains(@class, "f+2d")]')
-      if elem:
-        pass
-      else:
-        pass
-      mediatype = 'image'
-
-    if mediatype == None:
-      browser.close()
-      print('error, no media type found')
+  # try:
+    solver = FlareSolverr(host='0.0.0.0', port=8191, http_schema='http')
+    # print(locals())
+    new_session = solver.create_session(session_id='ifunny')
+    list_session = solver.sessions
+    if new_session.status == 'error':
+      print('error occured in session')
+      solver.destroy_session(new_session.session)
       SystemExit
+    else:
+      pass
+    print(list_session)
+    solver.request_get(url=url, session=new_session.session)
 
-    if mediatype == 'image':  
-      download(mediatype, elem)
-
-    if mediatype == 'video':
-      download(mediatype, elem)
-
-    browser.close()
-
-
-  except Exception as e:
-    print(e)
-    browser.close()
-    
-    
+  # except Exception as e:
+    # solver.destroy_session(new_session.session)
+    # SystemExit
 if __name__ == "__main__":
   typer.run(main)
   

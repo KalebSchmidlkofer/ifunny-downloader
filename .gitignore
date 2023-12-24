@@ -2,3 +2,4 @@
 .flaresolverr/
 __pycache__/
 output/*
+config.yml
